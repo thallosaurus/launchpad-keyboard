@@ -1,4 +1,5 @@
 use log::info;
+use rdev::{Key, simulate};
 use std::error::Error;
 
 #[cfg(target_os = "linux")]
@@ -32,7 +33,7 @@ impl From<&str> for Actions {
     }
 }
 
-#[cfg(target_os = "linux")]
+/*#[cfg(target_os = "linux")]
 impl From<Actions> for keyboard::Key {
     fn from(value: Actions) -> Self {
         match value {
@@ -83,8 +84,37 @@ impl InputBackend for UnsupportedInputStub {
     fn process_off_action(&mut self, action: Actions) {
         info!("{:?}", action);
     }
+}*/
+
+struct AgnosticBackend;
+
+impl InputBackend for AgnosticBackend {
+    fn process_on_action(&mut self, action: Actions) {
+        let k: rdev::Key = action.into();
+        simulate(&rdev::EventType::KeyPress(k)).expect("error sending key");
+        //simulate(event_type)
+    }
+    
+    fn process_off_action(&mut self, action: Actions) {
+        let k: rdev::Key = action.into();
+        simulate(&rdev::EventType::KeyRelease(k)).expect("error sending key");
+    }
 }
 
+impl From<Actions> for rdev::Key {
+    fn from(value: Actions) -> Self {
+        match value {
+            Actions::Forward => rdev::Key::KeyW,
+            Actions::Backward => rdev::Key::KeyA,
+            Actions::Left => rdev::Key::KeyS,
+            Actions::Right => rdev::Key::KeyD,
+            Actions::A => rdev::Key::KeyJ,
+            Actions::B => rdev::Key::KeyK,
+            Actions::Start => rdev::Key::Escape,
+            Actions::Select => rdev::Key::KeyX,
+        }
+    }
+}
 
 pub trait InputBackend: Send + Sync {
     fn process_on_action(&mut self, action: Actions);
@@ -93,7 +123,7 @@ pub trait InputBackend: Send + Sync {
 
 pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
     #[cfg(not(target_os = "linux"))]
-    { Ok(Box::new(UnsupportedInputStub)) }
+    { Ok(Box::new(AgnosticBackend)) }
     
     #[cfg(target_os = "linux")]
     {
