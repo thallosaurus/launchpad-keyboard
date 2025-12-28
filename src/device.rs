@@ -36,8 +36,7 @@ pub fn connect_input(
 
 pub fn connect_output(name: Option<String>) -> Result<MidiOutputConnection, Box<dyn Error>> {
     let midi_out = MidiOutput::new("midir forwarding output")?;
-    //let out_port = select_port(&midi_out, "midi output")?;
-        let out_port = if let Some(name) = name {
+    let out_port = if let Some(name) = name {
         select_port_by_name(&midi_out, name)?
     } else {
         select_port(&midi_out, "midi input")?

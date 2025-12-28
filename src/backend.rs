@@ -15,9 +15,6 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
     ctrlc::set_handler(move || { tx.send(()).expect("could not send ctrlc sig on channel"); })
         .expect("error setting ctrlc handler");
 
-    let config = Arc::new(Mutex::new(config));
-
-    //let input: Box<dyn VirtInput> = Box::new();
     let backend = Arc::new(Mutex::new(create_backend().expect("error while creating input backend")));
     
     let mut active: HashMap<Note, bool> = HashMap::new();
@@ -28,12 +25,9 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         }
     }
 
-    //let active = Arc::new(Mutex::new(active));
     let (active_tx, active_rx) = channel(100);
 
-    //let input_map = actions_map.clone();
     let input_backend = backend.clone();
-    //let active_in = active.clone();
 
     let _input_task = tokio::spawn(async move {
         //let map = input_map;
@@ -60,12 +54,6 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
 
                                         // send to overlay
                                         ac_tx.send(msg.1).unwrap();
-
-//                                        let mut alock = active.lock().await;
-//                                        let a = alock.get_mut(&note).unwrap();
-//                                        *a = true;
-
-                                        //active.insert(note, true);
                                     }
                                 },
                                 MidiMessage::NoteOff(_ch, note) => {
@@ -77,10 +65,6 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                         lock.process_off_action(action);
                                         drop(lock);
 
-                                        //let mut alock = active.lock().await;
-                                        
-                                        //let a = alock.get_mut(&note).unwrap();
-                                        //*a = false;
                                         ac_tx.send(msg.1).unwrap();
                                     }
                                 },
