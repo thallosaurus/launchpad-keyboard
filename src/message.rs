@@ -1,8 +1,8 @@
-use log::{debug, error, trace};
+use log::{error, trace};
 
-use crate::mapping::Actions;
+use crate::virtual_input::Actions;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);
 
 impl Message {
@@ -13,14 +13,13 @@ impl Message {
 
 pub type MidiChannel = u8;
 pub type MidiVelocity = u8;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum MidiMessage {
     NoteOn(MidiChannel, Note, MidiVelocity),
     NoteOff(MidiChannel, Note),
     AfterTouch(MidiChannel, Note, MidiVelocity),
-    Unknown
+    Unknown,
 }
-
 
 impl MidiMessage {
     pub fn parse(data: &[u8]) -> Self {
@@ -34,11 +33,10 @@ impl MidiMessage {
             [0x80..=0x8F, note, _] => {
                 let ch = data[0] - 0x80;
                 Self::NoteOff(ch, Note::parse(*note))
-
             }
             [0x90..=0x9F, note, 0] => {
                 let ch = data[0] - 0x90;
-                
+
                 Self::NoteOff(ch, Note::parse(*note))
             }
             [0xA0..=0xAF, note, vel] => {
@@ -64,7 +62,7 @@ impl From<MidiMessage> for Vec<u8> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Note {
     C(u8),
     CS(u8),
@@ -77,13 +75,13 @@ pub enum Note {
     GS(u8),
     A(u8),
     AS(u8),
-    B(u8)
+    B(u8),
 }
 impl Note {
     fn parse(data: u8) -> Self {
         let octave = data / 12;
         let key = data % 12;
-        
+
         match key {
             0 => Self::C(octave),
             1 => Self::CS(octave),
@@ -97,7 +95,7 @@ impl Note {
             9 => Self::A(octave),
             10 => Self::AS(octave),
             11 => Self::B(octave),
-            _ => panic!("unknown key")
+            _ => panic!("unknown key"),
         }
     }
 }
@@ -126,21 +124,41 @@ impl From<Note> for u8 {
 impl From<Note> for Option<Actions> {
     fn from(value: Note) -> Self {
         match value {
-            Note::A(oct) if oct == 3 => {
-                Some(Actions::Forward)
-            },
-            Note::F(oct) if oct == 3 => {
-                Some(Actions::Backward)
-            },
-            Note::E(oct) if oct == 3 => {
-                Some(Actions::Left)
-            },
-            Note::FS(oct) if oct == 3 => {
-                Some(Actions::Right)
-            }
-            _ => {
-                None
-            }
+            Note::A(oct) if oct == 3 => Some(Actions::Forward),
+            Note::F(oct) if oct == 3 => Some(Actions::Backward),
+            Note::E(oct) if oct == 3 => Some(Actions::Left),
+            Note::FS(oct) if oct == 3 => Some(Actions::Right),
+            _ => None,
+        }
+    }
+}
+
+impl From<String> for Note {
+    fn from(value: String) -> Self {
+        let value = value.trim();
+        let (note_str, octave_str) = value
+            .chars()
+            .partition::<String, _>(|c| !c.is_ascii_digit() && *c != '-');
+
+        // Handle Octave, inklusive negatives
+        let octave: u8 = octave_str
+            .parse()
+            .unwrap_or_else(|_| panic!("Invalid octave in note string: {}", value));
+
+        match note_str.as_str() {
+            "C" => Note::C(octave),
+            "C#" | "CS" => Note::CS(octave),
+            "D" => Note::D(octave),
+            "D#" | "DS" => Note::DS(octave),
+            "E" => Note::E(octave),
+            "F" => Note::F(octave),
+            "F#" | "FS" => Note::FS(octave),
+            "G" => Note::G(octave),
+            "G#" | "GS" => Note::GS(octave),
+            "A" => Note::A(octave),
+            "A#" | "AS" => Note::AS(octave),
+            "B" => Note::B(octave),
+            _ => panic!("Unknown note string: {}", value),
         }
     }
 }

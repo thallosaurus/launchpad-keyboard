@@ -1,29 +1,30 @@
-use once_cell::sync::Lazy;
-use uinput::event::keyboard::{self, Key};
+use std::{collections::HashMap, error::Error};
 
-#[derive(Eq, Hash, PartialEq, Copy, Clone)]
-pub enum Actions {
-    Forward,
-    Backward,
-    Left,
-    Right,
-    A,
-    B,
-    Start,
-    Select,
+use serde::{Deserialize, Serialize};
+use tokio::{fs::File, io::AsyncReadExt};
+
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Config {
+    mapping: HashMap<String, String>,
+    device: HashMap<String, String>,
 }
 
-impl From<Actions> for keyboard::Key {
-    fn from(value: Actions) -> Self {
-        match value {
-            Actions::Forward => Key::W,
-            Actions::Backward => Key::A,
-            Actions::Left => Key::S,
-            Actions::Right => Key::D,
-            Actions::A => Key::J,
-            Actions::B => Key::K,
-            Actions::Start => Key::Y,
-            Actions::Select => Key::X,
-        }
+impl Config {
+    pub async fn init() -> Result<Self, Box<dyn Error>> {
+        let mut input = File::open("./Mapping.toml").await?;
+        let mut s = String::new();
+        input.read_to_string(&mut s).await.unwrap();
+
+        Ok(toml::from_str(&s).expect("failed parsing the config"))
+    }
+
+    pub fn get_input_name(&self) -> Option<String> {
+        self.device.get("input").cloned()
+    }
+
+    pub fn get_output_name(&self) -> Option<String> {
+        self.device.get("output").cloned()
     }
 }
