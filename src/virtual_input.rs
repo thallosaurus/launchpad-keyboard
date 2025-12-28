@@ -2,7 +2,7 @@ use log::info;
 use std::error::Error;
 
 #[cfg(target_os = "linux")]
-use uinput::event::keyboard::{self, Key};
+use uinput::{Device, event::keyboard::{self, Key}};
 
 #[derive(Eq, Hash, PartialEq, Copy, Clone, Debug)]
 pub enum Actions {
@@ -33,21 +33,25 @@ impl From<Actions> for keyboard::Key {
 }
 
 #[cfg(target_os = "linux")]
-use uinput::Key;
-
-#[cfg(target_os = "linux")]
 struct LinuxBackend {
-
+    device: Device
 }
 
 #[cfg(target_os = "linux")]
 impl InputBackend for LinuxBackend {
-    fn process_on_action(&self, action: Actions) {
-
+    fn process_on_action(&mut self, action: Actions) {
+        info!("On: {:?}", action);
+        let ev: keyboard::Key = action.into();
+        self.device.press(&ev).expect("error while pressing key");
+        self.device.synchronize().expect("error while synchronizing device");
     }
     
-    fn process_off_action(&self, action: Actions) {
-        todo!()
+    fn process_off_action(&mut self, action: Actions) {
+        info!("Off: {:?}", action);
+        let ev: keyboard::Key = action.into();
+        self.device.release(&ev).expect("error while pressing key");
+        self.device.synchronize().expect("error while synchronizing device");
+
     }
 }
 
@@ -56,19 +60,19 @@ struct UnsupportedInputStub;
 
 #[cfg(not(target_os = "linux"))]
 impl InputBackend for UnsupportedInputStub {
-    fn process_on_action(&self, action: Actions) {
+    fn process_on_action(&mut self, action: Actions) {
         info!("{:?}", action);
     }
     
-    fn process_off_action(&self, action: Actions) {
+    fn process_off_action(&mut self, action: Actions) {
         info!("{:?}", action);
     }
 }
 
 
 pub trait InputBackend: Send + Sync {
-    fn process_on_action(&self, action: Actions);
-    fn process_off_action(&self, action: Actions);
+    fn process_on_action(&mut self, action: Actions);
+    fn process_off_action(&mut self, action: Actions);
 }
 
 pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
@@ -82,6 +86,8 @@ pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
             .event(uinput::event::Keyboard::All).unwrap()
             .create().unwrap();
 
-        Box::new(LinuxBackend)
+        Ok(Box::new(LinuxBackend {
+            device
+        }))
     }
 }

@@ -52,7 +52,7 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                         //}
                                         //drop(map);
 
-                                        let lock = backend.lock().await;
+                                        let mut lock = backend.lock().await;
                                         lock.process_on_action(action);
                                         drop(lock);
 
@@ -66,7 +66,7 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
 
-                                        let lock = backend.lock().await;
+                                        let mut lock = backend.lock().await;
                                         lock.process_off_action(action);
                                         drop(lock);
                                         

@@ -1,6 +1,6 @@
 [device]
-input = "Launchpad Pro MK3 LPProMK3 MIDI"
-output = "Launchpad Pro MK3 LPProMK3 MIDI"
+#input = "Launchpad Pro MK3 LPProMK3 MIDI"
+#output = "Launchpad Pro MK3 LPProMK3 MIDI"
 
 [mapping]
 foward = "C3"
