@@ -61,6 +61,11 @@ pub async fn event_loop(mut from_raw_device: Receiver<Message>, mut output_port:
                                     if let Some(action) = action {
                                         let key: keyboard::Key = action.into();
 
+                                        let mut map = map.lock().await;
+                                        if map.contains_key(&action) {
+                                            map.remove(&action);
+                                        }
+
                                         device.release(&key).unwrap();
                                         device.synchronize().unwrap();
                                     }
@@ -99,6 +104,10 @@ pub async fn event_loop(mut from_raw_device: Receiver<Message>, mut output_port:
 
     // displays the overlay and feedback
     let _output_task = tokio::spawn(async move {
+        //let msg = [144, 36, 125];
+        //output_port.send(&msg).unwrap();
+
+        let mut last_len = 0;
         loop {
             tokio::select! {
                 c = out_rx.recv() => {
@@ -106,8 +115,7 @@ pub async fn event_loop(mut from_raw_device: Receiver<Message>, mut output_port:
                     break;
                 }
             }
-            //let msg = [144, 36, 125];
-            //output_port.send(&msg).unwrap();
+            
             //println!("Sent!");
         }
 
