@@ -42,7 +42,7 @@ impl From<Actions> for keyboard::Key {
             Actions::Right => Key::D,
             Actions::A => Key::J,
             Actions::B => Key::K,
-            Actions::Start => Key::Y,
+            Actions::Start => Key::Esc,
             Actions::Select => Key::X,
         }
     }
