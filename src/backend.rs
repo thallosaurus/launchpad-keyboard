@@ -7,7 +7,6 @@ use tokio::sync::{
     broadcast::{channel, error::RecvError},
     mpsc::Receiver,
 };
-//use uinput::event::keyboard;
 
 use crate::{
     mapping::{Config, MAPPING},
@@ -33,21 +32,11 @@ pub async fn event_loop(
         create_backend().expect("error while creating input backend"),
     ));
 
-    let mut active: HashMap<Note, bool> = HashMap::new();
-    {
-        let lock = MAPPING.lock().unwrap();
-        for k in lock.keys() {
-            active.insert(*k, false);
-        }
-    }
-
     let (active_tx, active_rx) = channel(100);
 
     let input_backend = backend.clone();
 
     let _input_task = tokio::spawn(async move {
-        //let map = input_map;
-        //let active = active_in;
         let ac_tx = active_tx;
 
         let backend = input_backend;
@@ -93,7 +82,8 @@ pub async fn event_loop(
                                     }
                                 },
                                 MidiMessage::Unknown => {
-
+                                    // do nothing
+                                    continue
                                 },
                             }
                         },
@@ -108,16 +98,13 @@ pub async fn event_loop(
                     break;
                 }
             }
-            //let msg = from_raw_device.recv().await;
         }
         // flush
     });
 
-    //let out_config = config.clone();
-    let active_out = active.clone();
     // displays the overlay and feedback
     let _output_task = tokio::spawn(async move {
-        let active = active_out.clone();
+        //let active = active_out.clone();
         let output = Arc::new(std::sync::Mutex::new(output_port));
 
         let mut ac_rx = active_rx;
