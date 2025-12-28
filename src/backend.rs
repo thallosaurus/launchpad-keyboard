@@ -44,15 +44,11 @@ pub async fn event_loop(mut from_raw_device: Receiver<Message>, mut output_port:
                                         if !map.contains_key(&action) {
                                             map.insert(action, vel);
                                         }
+                                        drop(map);
 
                                         let key: keyboard::Key = action.into();
                                         device.press(&key).unwrap();
                                         device.synchronize().unwrap();
-                                        
-                                        //map.
-                                        //let key: keyboard::Key = action.into();
-                                        //device.click(&key).unwrap();
-                                        //device.synchronize().unwrap();
                                     }
                                 },
                                 MidiMessage::NoteOff(ch, note) => {
@@ -60,11 +56,12 @@ pub async fn event_loop(mut from_raw_device: Receiver<Message>, mut output_port:
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
                                         let key: keyboard::Key = action.into();
-
+                                        
                                         let mut map = map.lock().await;
                                         if map.contains_key(&action) {
                                             map.remove(&action);
                                         }
+                                        drop(map);
 
                                         device.release(&key).unwrap();
                                         device.synchronize().unwrap();

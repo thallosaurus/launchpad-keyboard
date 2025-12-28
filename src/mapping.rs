@@ -1,3 +1,4 @@
+use once_cell::sync::Lazy;
 use uinput::event::keyboard::{self, Key};
 
 #[derive(Eq, Hash, PartialEq, Copy, Clone)]
