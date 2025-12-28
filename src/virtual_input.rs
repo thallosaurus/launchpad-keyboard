@@ -2,8 +2,8 @@ use log::info;
 use rdev::{Key, simulate};
 use std::error::Error;
 
-#[cfg(target_os = "linux")]
-use uinput::{Device, event::keyboard::{self, Key}};
+//#[cfg(target_os = "linux")]
+//use uinput::{Device, event::keyboard::{self, Key}};
 
 #[derive(Eq, Hash, PartialEq, Copy, Clone, Debug)]
 pub enum Actions {
@@ -122,6 +122,7 @@ pub trait InputBackend: Send + Sync {
 }
 
 pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
+    /*
     #[cfg(not(target_os = "linux"))]
     { Ok(Box::new(AgnosticBackend)) }
     
@@ -136,4 +137,6 @@ pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
             device
         }))
     }
+    */
+    Ok(Box::new(AgnosticBackend))
 }
