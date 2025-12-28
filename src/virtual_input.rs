@@ -16,6 +16,22 @@ pub enum Actions {
     Select,
 }
 
+impl From<&str> for Actions {
+    fn from(value: &str) -> Self {
+        match value {
+            "forward" => Self::Forward,
+            "backward" => Self::Backward,
+            "left" => Self::Left,
+            "right" => Self::Right,
+            "a" => Self::A,
+            "b" => Self::B,
+            "start" => Self::Start,
+            "select" => Self::Select,
+            _ => panic!("unknown mapping")
+        }
+    }
+}
+
 #[cfg(target_os = "linux")]
 impl From<Actions> for keyboard::Key {
     fn from(value: Actions) -> Self {

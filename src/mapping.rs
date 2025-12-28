@@ -1,9 +1,14 @@
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, sync::Mutex};
 
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
+use crate::{message::Note, virtual_input::Actions};
 
+pub static MAPPING: Lazy<Mutex<HashMap<Note, Actions>>> = Lazy::new(|| {
+    Mutex::new(HashMap::new())
+});
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -17,7 +22,22 @@ impl Config {
         let mut s = String::new();
         input.read_to_string(&mut s).await.unwrap();
 
-        Ok(toml::from_str(&s).expect("failed parsing the config"))
+        let toml: Config = toml::from_str(&s).expect("failed parsing the config");
+        //let m = MAPPING.lock().await;
+        let m = toml.mapping.clone();
+        
+        for (_, (ac, m)) in m.iter().enumerate() {
+            println!("MAPPING: {:?} = {:?}", ac, m);
+            let key: Actions = ac.as_str().into();
+            let midi: Note = m.as_str().into();
+            
+            {
+                let mut mapping = MAPPING.lock().unwrap();
+                mapping.insert(midi, key);
+            }
+        }
+
+        Ok(toml)
     }
 
     pub fn get_input_name(&self) -> Option<String> {

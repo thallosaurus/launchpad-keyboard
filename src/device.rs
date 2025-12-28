@@ -13,7 +13,6 @@ pub fn connect_input(
 ) -> Result<MidiInputConnection<Sender<Message>>, Box<dyn Error>> {
     let mut midi_in = MidiInput::new("midir forwarding input")?;
     midi_in.ignore(midir::Ignore::Time);
-    //let in_port = select_port(&midi_in, "midi input")?;
 
     let in_port = if let Some(name) = name {
         select_port_by_name(&midi_in, name)?

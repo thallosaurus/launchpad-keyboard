@@ -1,6 +1,10 @@
-use log::{error, trace};
+use std::collections::HashMap;
 
-use crate::virtual_input::Actions;
+use log::{error, trace};
+use once_cell::sync::Lazy;
+use tokio::sync::Mutex;
+
+use crate::{mapping::MAPPING, virtual_input::Actions};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);
@@ -13,6 +17,7 @@ impl Message {
 
 pub type MidiChannel = u8;
 pub type MidiVelocity = u8;
+
 #[derive(Debug, Clone, Copy)]
 pub enum MidiMessage {
     NoteOn(MidiChannel, Note, MidiVelocity),
@@ -62,7 +67,7 @@ impl From<MidiMessage> for Vec<u8> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Note {
     C(u8),
     CS(u8),
@@ -123,18 +128,15 @@ impl From<Note> for u8 {
 
 impl From<Note> for Option<Actions> {
     fn from(value: Note) -> Self {
-        match value {
-            Note::A(oct) if oct == 3 => Some(Actions::Forward),
-            Note::F(oct) if oct == 3 => Some(Actions::Backward),
-            Note::E(oct) if oct == 3 => Some(Actions::Left),
-            Note::FS(oct) if oct == 3 => Some(Actions::Right),
-            _ => None,
-        }
+        // TODO: Replace with mapping
+        let m = MAPPING.lock().unwrap();
+
+        m.get(&value.into()).cloned()
     }
 }
 
-impl From<String> for Note {
-    fn from(value: String) -> Self {
+impl From<&str> for Note {
+    fn from(value: &str) -> Self {
         let value = value.trim();
         let (note_str, octave_str) = value
             .chars()

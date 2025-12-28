@@ -3,4 +3,8 @@
 #output = "Launchpad Pro MK3 LPProMK3 MIDI"
 
 [mapping]
-foward = "C3"
+forward = "A3"
+backward = "F3"
+left = "E3"
+right = "F#3"
+a = "C3"
