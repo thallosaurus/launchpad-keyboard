@@ -1,15 +1,15 @@
 use std::{collections::HashMap, sync::Arc};
 
 use log::debug;
-use midir::MidiOutputConnection;
+use midir::{MidiOutputConnection, SendError};
 use tokio::sync::{Mutex, broadcast::{channel, error::RecvError}, mpsc::Receiver};
 //use uinput::event::keyboard;
 
-use crate::{mapping::Config, message::{Message, MidiMessage, MidiVelocity}, virtual_input::{Actions, InputBackend, create_backend}};
+use crate::{mapping::{Config, MAPPING}, message::{Message, MidiMessage, MidiVelocity}, virtual_input::{Actions, InputBackend, create_backend}};
 
 type ActiveActions = HashMap<Actions, MidiVelocity>;
 
-pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, _output_port: MidiOutputConnection) -> Result<(), RecvError> {
+pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, mut output_port: MidiOutputConnection) -> Result<(), RecvError> {
     let (tx, _rx) = channel(1);
     let mut in_rx = tx.subscribe();
     let mut out_rx = tx.subscribe();
@@ -118,9 +118,13 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
     // displays the overlay and feedback
     let _output_task = tokio::spawn(async move {
         //let msg = [144, 36, 125];
-        //output_port.send(&msg).unwrap();
+//        output_port.send(&msg).unwrap();
 
-        let _config = out_config.lock().await;
+//        let _config = out_config.lock().await;
+
+        let output = Arc::new(std::sync::Mutex::new(output_port));
+
+        draw_mapping(&output).await.unwrap();
 
         let _last_len = 0;
         loop {
@@ -135,13 +139,33 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         }
 
         // send all notes off
+        send_all_off(&output).await
     });
 
     let _join = tokio::join!(_input_task, _output_task);
     Ok(())
 }
 
-#[derive(Clone, Copy, Debug)]
-enum BroadcastClose {
-    Close
+async fn draw_mapping(output: &Arc<std::sync::Mutex<MidiOutputConnection>>) -> Result<(), SendError> {
+    let mapping = MAPPING.lock().unwrap();
+
+    let mut lock = output.lock().expect("error acquiring output lock");
+
+    for m in mapping.keys() {
+        let msg: Vec<u8> = MidiMessage::NoteOn(0, *m, 11).into();
+        //let msg = m.into();
+        debug!("{:?}", msg);
+        lock.send(&msg)?;
+    }
+    Ok(())
+}
+
+async fn send_all_off(output: &Arc<std::sync::Mutex<MidiOutputConnection>>) -> Result<(), SendError> {
+        let mut lock = output.lock().expect("error acquiring output lock");
+    for i in 0..=127 {
+        let index = i as u8;
+        let note: Vec<u8> = MidiMessage::NoteOff(0, index.into()).into();
+        lock.send(&note)?;
+    }
+    Ok(())
 }

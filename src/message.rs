@@ -30,20 +30,23 @@ impl MidiMessage {
         match data {
             [0x90..=0x9F, note, vel] if *vel > 0 => {
                 let ch = data[0] - 0x90;
-                Self::NoteOn(ch, Note::parse(*note), *vel)
+                let n = (*note).into();
+                Self::NoteOn(ch, n, *vel)
             }
             [0x80..=0x8F, note, _] => {
                 let ch = data[0] - 0x80;
-                Self::NoteOff(ch, Note::parse(*note))
+                let n = (*note).into();
+                Self::NoteOff(ch, n)
             }
             [0x90..=0x9F, note, 0] => {
                 let ch = data[0] - 0x90;
-
-                Self::NoteOff(ch, Note::parse(*note))
+                let n = (*note).into();
+                Self::NoteOff(ch, n)
             }
             [0xA0..=0xAF, note, vel] => {
                 let ch = data[0] - 0xA0;
-                Self::AfterTouch(ch, Note::parse(*note), *vel)
+                let n = (*note).into();
+                Self::AfterTouch(ch, n, *vel)
             }
             _ => {
                 error!("{:?}", data);
@@ -79,10 +82,11 @@ pub enum Note {
     AS(u8),
     B(u8),
 }
-impl Note {
-    fn parse(data: u8) -> Self {
-        let octave = data / 12;
-        let key = data % 12;
+
+impl From<u8> for Note {
+    fn from(value: u8) -> Self {
+                let octave = value / 12;
+        let key = value % 12;
 
         match key {
             0 => Self::C(octave),
