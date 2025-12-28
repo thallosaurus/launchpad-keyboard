@@ -2,15 +2,15 @@ use std::{collections::HashMap, sync::Arc};
 
 use log::debug;
 use midir::MidiOutputConnection;
-use tokio::{sync::{Mutex, broadcast::{self, channel, error::RecvError}, mpsc::{Receiver, Sender}}, time::sleep};
+use tokio::sync::{Mutex, broadcast::{channel, error::RecvError}, mpsc::Receiver};
 //use uinput::event::keyboard;
 
-use crate::{mapping::Config, message::{Message, MidiChannel, MidiMessage, MidiVelocity, Note}, virtual_input::{self, Actions, InputBackend, create_backend}};
+use crate::{mapping::Config, message::{Message, MidiMessage, MidiVelocity}, virtual_input::{Actions, InputBackend, create_backend}};
 
 type ActiveActions = HashMap<Actions, MidiVelocity>;
 
-pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, mut output_port: MidiOutputConnection) -> Result<(), RecvError> {
-    let (tx, rx) = channel(1);
+pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, _output_port: MidiOutputConnection) -> Result<(), RecvError> {
+    let (tx, _rx) = channel(1);
     let mut in_rx = tx.subscribe();
     let mut out_rx = tx.subscribe();
 
@@ -37,11 +37,11 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         loop {
             tokio::select! {
                 msg = from_raw_device.recv() => {
-                    let msg_clone = msg.clone();
+                    let _msg_clone = msg.clone();
                     match msg {
                         Some(msg) => {
                             match msg.1 {
-                                MidiMessage::NoteOn(ch, note, vel) => {
+                                MidiMessage::NoteOn(_ch, note, _vel) => {
                                     debug!("{:?}", note);
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
@@ -61,7 +61,7 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                         device.synchronize().unwrap();*/
                                     }
                                 },
-                                MidiMessage::NoteOff(ch, note) => {
+                                MidiMessage::NoteOff(_ch, note) => {
                                     debug!("{:?}", note);
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
@@ -82,11 +82,11 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                         device.synchronize().unwrap();*/
                                     }
                                 },
-                                MidiMessage::AfterTouch(ch, note, vel) => {
+                                MidiMessage::AfterTouch(_ch, note, _vel) => {
                                     debug!("{:?}", note);
                                     let action: Option<Actions> = note.into();
                                     
-                                    if let Some(action) = action {
+                                    if let Some(_action) = action {
                                         // todo
                                     }
                                 },
@@ -101,7 +101,7 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                         },
                     }
                 }
-                c = in_rx.recv() => {
+                _c = in_rx.recv() => {
                     debug!("closing input task");
                     break;
                 }
@@ -120,12 +120,12 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         //let msg = [144, 36, 125];
         //output_port.send(&msg).unwrap();
 
-        let config = out_config.lock().await;
+        let _config = out_config.lock().await;
 
-        let mut last_len = 0;
+        let _last_len = 0;
         loop {
             tokio::select! {
-                c = out_rx.recv() => {
+                _c = out_rx.recv() => {
                     debug!("closing output task");
                     break;
                 }
@@ -137,7 +137,7 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         // send all notes off
     });
 
-    let join = tokio::join!(_input_task, _output_task);
+    let _join = tokio::join!(_input_task, _output_task);
     Ok(())
 }
 

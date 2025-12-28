@@ -1,7 +1,6 @@
-use std::{error::Error, io::{Write, stdin, stdout}};
+use std::error::Error;
 
 use lp_pro_gamecontroller::{backend::event_loop, device::{connect_input, connect_output}, mapping::Config};
-use simple_logger::SimpleLogger;
 use tokio::sync::mpsc::channel;
 
 #[tokio::main]

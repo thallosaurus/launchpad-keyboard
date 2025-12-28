@@ -97,7 +97,7 @@ pub fn create_backend() -> Result<Box<dyn InputBackend>, Box<dyn Error>> {
     
     #[cfg(target_os = "linux")]
     {
-        let mut device = uinput::default().unwrap()
+        let device = uinput::default().unwrap()
             .name("launchpad-keyboard").unwrap()
             .event(uinput::event::Keyboard::All).unwrap()
             .create().unwrap();
