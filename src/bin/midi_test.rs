@@ -10,12 +10,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     simple_logger::init_with_env().unwrap();
 
-    //let device = connect().unwrap();
     let (tx, from_device) = channel(100);
-
     let _in_port = connect_input(config.get_input_name(), tx)?;
     let out_port = connect_output(config.get_output_name())?;
-
 
     event_loop(config, from_device, out_port).await.unwrap();
     Ok(())

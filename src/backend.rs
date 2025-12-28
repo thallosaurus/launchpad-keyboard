@@ -5,7 +5,7 @@ use midir::MidiOutputConnection;
 use tokio::{sync::{Mutex, broadcast::{self, channel, error::RecvError}, mpsc::{Receiver, Sender}}, time::sleep};
 //use uinput::event::keyboard;
 
-use crate::{mapping::Config, message::{Message, MidiChannel, MidiMessage, MidiVelocity, Note}, virtual_input::Actions};
+use crate::{mapping::Config, message::{Message, MidiChannel, MidiMessage, MidiVelocity, Note}, virtual_input::{self, Actions, InputBackend, create_backend}};
 
 type ActiveActions = HashMap<Actions, MidiVelocity>;
 
@@ -22,12 +22,17 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
         .event(uinput::event::Keyboard::All).unwrap()
         .create().unwrap();*/
 
-    let actions_map = Arc::new(Mutex::new(ActiveActions::new()));
+    //let actions_map = Arc::new(Mutex::new(ActiveActions::new()));
     let config = Arc::new(Mutex::new(config));
 
-    let input_map = actions_map.clone();
+    //let input: Box<dyn VirtInput> = Box::new();
+    let backend = Arc::new(Mutex::new(create_backend().expect("error while creating input backend")));
+
+    //let input_map = actions_map.clone();
+    let input_backend = backend.clone();
     let _input_task = tokio::spawn(async move {
-        let map = input_map;
+        //let map = input_map;
+        let backend = input_backend;
 
         loop {
             tokio::select! {
@@ -40,12 +45,16 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                     debug!("{:?}", note);
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
-                                        let mut map = map.lock().await;
+                                        //let mut map = map.lock().await;
 
-                                        if !map.contains_key(&action) {
-                                            map.insert(action, vel);
-                                        }
-                                        drop(map);
+                                        //if !map.contains_key(&action) {
+                                        //    map.insert(action, vel);
+                                        //}
+                                        //drop(map);
+
+                                        let lock = backend.lock().await;
+                                        lock.process_on_action(action);
+                                        drop(lock);
 
                                         /*let key: keyboard::Key = action.into();
                                         device.press(&key).unwrap();
@@ -56,12 +65,16 @@ pub async fn event_loop(config: Config, mut from_raw_device: Receiver<Message>, 
                                     debug!("{:?}", note);
                                     let action: Option<Actions> = note.into();
                                     if let Some(action) = action {
+
+                                        let lock = backend.lock().await;
+                                        lock.process_off_action(action);
+                                        drop(lock);
                                         
-                                        let mut map = map.lock().await;
+                                        /*let mut map = map.lock().await;
                                         if map.contains_key(&action) {
                                             map.remove(&action);
                                         }
-                                        drop(map);
+                                        drop(map);*/
                                         
                                         /*
                                         let key: keyboard::Key = action.into();
