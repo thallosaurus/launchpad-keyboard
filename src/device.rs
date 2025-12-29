@@ -24,8 +24,9 @@ pub fn connect_input(
         &in_port,
         "lppro-gamecontroller",
         move |ts, msg, tx| {
+            let msg = Vec::from(msg);
             let parsed = Message::parse(ts, msg);
-            //tx.blocking_send(parsed);
+
             if let Err(e) = tx.blocking_send(parsed) {
                 eprintln!("Error receiving midi message: {}", e);
             }

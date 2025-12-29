@@ -11,9 +11,17 @@ pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> = Lazy::new(|| {
 });
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct DeviceConfig {
+    input: Option<String>,
+    output: Option<String>,
+    pub lights: bool
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     mapping: HashMap<MidiNote, rdev::Key>,
-    device: HashMap<String, String>,
+    //device: HashMap<String, String>,
+    pub device: DeviceConfig
 }
 
 impl Config {
@@ -28,7 +36,6 @@ impl Config {
         
         for (_, (m, ac)) in m.iter().enumerate() {
             println!("MAPPING: {:?} = {:?}", ac, m);
-            //let midi: MidiNote = m.as_str().into();
             
             {
                 let mut mapping = MAPPING.lock().unwrap();
@@ -40,10 +47,10 @@ impl Config {
     }
 
     pub fn get_input_name(&self) -> Option<String> {
-        self.device.get("input").cloned()
+        self.device.input.clone()
     }
-
+    
     pub fn get_output_name(&self) -> Option<String> {
-        self.device.get("output").cloned()
+        self.device.output.clone()
     }
 }

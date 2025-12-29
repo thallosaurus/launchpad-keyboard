@@ -7,8 +7,8 @@ use crate::{note::MidiNote};
 pub struct Message(u64, pub MidiMessage);
 
 impl Message {
-    pub fn parse(ts: u64, data: &[u8]) -> Self {
-        Message(ts, MidiMessage::parse(data))
+    pub fn parse(ts: u64, data: Vec<u8>) -> Self {
+        Message(ts, data.into())
     }
 }
 
@@ -23,11 +23,22 @@ pub enum MidiMessage {
     Unknown,
 }
 
-impl MidiMessage {
-    pub fn parse(data: &[u8]) -> Self {
+impl From<MidiMessage> for Vec<u8> {
+    fn from(value: MidiMessage) -> Self {
+        match value {
+            MidiMessage::NoteOn(ch, note, vel) => vec![0x90 + ch, note.into(), vel],
+            MidiMessage::NoteOff(ch, note) => vec![0x80 + ch, note.into(), 0],
+            MidiMessage::AfterTouch(ch, note, vel) => vec![0xA0 + ch, note.into(), vel],
+            MidiMessage::Unknown => todo!(),
+        }
+    }
+}
+
+impl From<Vec<u8>> for MidiMessage {
+    fn from(data: Vec<u8>) -> Self {
         trace!("{:?}", data);
 
-        match data {
+        match data.as_slice() {
             [0x90..=0x9F, note, vel] if *vel > 0 => {
                 let ch = data[0] - 0x90;
                 let n = (*note).into();
@@ -52,17 +63,6 @@ impl MidiMessage {
                 error!("{:?}", data);
                 Self::Unknown
             }
-        }
-    }
-}
-
-impl From<MidiMessage> for Vec<u8> {
-    fn from(value: MidiMessage) -> Self {
-        match value {
-            MidiMessage::NoteOn(ch, note, vel) => vec![0x90 + ch, note.into(), vel],
-            MidiMessage::NoteOff(ch, note) => vec![0x80 + ch, note.into(), 0],
-            MidiMessage::AfterTouch(ch, note, vel) => vec![0xA0 + ch, note.into(), vel],
-            MidiMessage::Unknown => todo!(),
         }
     }
 }

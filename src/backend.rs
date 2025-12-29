@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use log::{debug, trace};
+use log::{debug, info, trace};
 use midir::{MidiOutputConnection, SendError};
 use tokio::sync::{
     Mutex,
@@ -105,29 +105,36 @@ pub async fn event_loop(
     });
 
     // displays the overlay and feedback
+    let enable_light = config.device.lights;
+
     let _output_task = tokio::spawn(async move {
         //move into scope
         let mut ac_rx = active_rx;
         let output = Arc::new(std::sync::Mutex::new(output_port));
+        let enable_light = enable_light;
+        if enable_light {
+            draw_mapping(&output).await.unwrap();
 
-        draw_mapping(&output).await.unwrap();
+            let _last_len = 0;
+            loop {
+                tokio::select! {
+                    Ok(msg) = ac_rx.recv() => {
 
-        let _last_len = 0;
-        loop {
-            tokio::select! {
-                Ok(msg) = ac_rx.recv() => {
-
-                    draw_active(msg, &output).await?;
-                }
-                _c = out_rx.recv() => {
-                    debug!("closing output task");
-                    break;
+                        draw_active(msg, &output).await?;
+                    }
+                    _c = out_rx.recv() => {
+                        debug!("closing output task");
+                        break;
+                    }
                 }
             }
-        }
 
-        // send all notes off
-        send_all_off(&output).await
+            // send all notes off
+            send_all_off(&output).await
+        } else {
+            info!("Overlay is disabled!");
+            Ok(())
+        }
     });
 
     let _join = tokio::join!(_input_task, _output_task);
