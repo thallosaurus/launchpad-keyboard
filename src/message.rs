@@ -127,7 +127,7 @@ impl From<Note> for u8 {
     }
 }
 
-impl From<Note> for Option<Actions> {
+impl From<Note> for Option<rdev::Key> {
     fn from(value: Note) -> Self {
         // TODO: Replace with mapping
         let m = MAPPING.lock().unwrap();

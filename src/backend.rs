@@ -51,7 +51,7 @@ pub async fn event_loop(
                             match msg.1 {
                                 MidiMessage::NoteOn(_ch, note, _vel) => {
                                     debug!("{:?}", note);
-                                    let action: Option<Actions> = note.into();
+                                    let action: Option<rdev::Key> = note.into();
                                     if let Some(action) = action {
 
                                         let mut lock = backend.lock().await;
@@ -64,7 +64,7 @@ pub async fn event_loop(
                                 },
                                 MidiMessage::NoteOff(_ch, note) => {
                                     debug!("{:?}", note);
-                                    let action: Option<Actions> = note.into();
+                                    let action: Option<rdev::Key> = note.into();
                                     if let Some(action) = action {
 
                                         let mut lock = backend.lock().await;
@@ -76,7 +76,7 @@ pub async fn event_loop(
                                 },
                                 MidiMessage::AfterTouch(_ch, note, _vel) => {
                                     debug!("{:?}", note);
-                                    let action: Option<Actions> = note.into();
+                                    let action: Option<rdev::Key> = note.into();
 
                                     if let Some(_action) = action {
                                         // todo
