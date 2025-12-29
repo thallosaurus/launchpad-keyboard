@@ -14,6 +14,7 @@ use crate::{
     virtual_input::{Actions, create_backend},
 };
 
+/// The Event Loop that processes and sends events to their destinations
 pub async fn event_loop(
     config: Config,
     mut from_raw_device: Receiver<Message>,
@@ -133,6 +134,7 @@ pub async fn event_loop(
     Ok(())
 }
 
+/// Draws the velocities on the hardware
 async fn draw_active(
     message: MidiMessage,
     output: &Arc<std::sync::Mutex<MidiOutputConnection>>,
@@ -157,6 +159,7 @@ async fn draw_active(
     Ok(())
 }
 
+/// Initially draw the mapping on the device
 async fn draw_mapping(
     output: &Arc<std::sync::Mutex<MidiOutputConnection>>,
 ) -> Result<(), SendError> {
@@ -173,6 +176,7 @@ async fn draw_mapping(
     Ok(())
 }
 
+/// Send MidiOff to all notes
 async fn send_all_off(
     output: &Arc<std::sync::Mutex<MidiOutputConnection>>,
 ) -> Result<(), SendError> {
