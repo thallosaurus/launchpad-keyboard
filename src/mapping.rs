@@ -4,21 +4,21 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::message::Note;
+use crate::note::MidiNote;
 
-pub static MAPPING: Lazy<Mutex<HashMap<Note, rdev::Key>>> = Lazy::new(|| {
+pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> = Lazy::new(|| {
     Mutex::new(HashMap::new())
 });
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    mapping: HashMap<rdev::Key, String>,
+    mapping: HashMap<MidiNote, rdev::Key>,
     device: HashMap<String, String>,
 }
 
 impl Config {
-    pub async fn init() -> Result<Self, Box<dyn Error>> {
-        let mut input = File::open("./Mapping.toml").await?;
+    pub async fn init(path: &str) -> Result<Self, Box<dyn Error>> {
+        let mut input = File::open(path).await?;
         let mut s = String::new();
         input.read_to_string(&mut s).await.unwrap();
 
@@ -26,15 +26,13 @@ impl Config {
         //let m = MAPPING.lock().await;
         let m = toml.mapping.clone();
         
-        for (_, (ac, m)) in m.iter().enumerate() {
+        for (_, (m, ac)) in m.iter().enumerate() {
             println!("MAPPING: {:?} = {:?}", ac, m);
-            //let key: Actions = ac.as_str().into();
-            //let key: rdev::Key = 
-            let midi: Note = m.as_str().into();
+            //let midi: MidiNote = m.as_str().into();
             
             {
                 let mut mapping = MAPPING.lock().unwrap();
-                mapping.insert(midi, *ac);
+                mapping.insert(*m, *ac);
             }
         }
 

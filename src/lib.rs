@@ -12,3 +12,5 @@ pub mod mapping;
 
 /// Stuff that emulates the keyboard
 mod virtual_input;
+
+pub mod note;

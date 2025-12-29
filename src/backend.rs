@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use log::{debug, trace};
 use midir::{MidiOutputConnection, SendError};
@@ -10,7 +10,7 @@ use tokio::sync::{
 
 use crate::{
     mapping::{Config, MAPPING},
-    message::{Message, MidiMessage, Note},
+    message::{Message, MidiMessage},
     virtual_input::create_backend,
 };
 
@@ -20,6 +20,7 @@ pub async fn event_loop(
     mut from_raw_device: Receiver<Message>,
     output_port: MidiOutputConnection,
 ) -> Result<(), RecvError> {
+    // cancellation signal that signals our tasks we are done
     let (tx, _rx) = channel(1);
     let mut in_rx = tx.subscribe();
     let mut out_rx = tx.subscribe();
@@ -32,14 +33,14 @@ pub async fn event_loop(
     let backend = Arc::new(Mutex::new(
         create_backend().expect("error while creating input backend"),
     ));
-
-    let (active_tx, active_rx) = channel(100);
-
     let input_backend = backend.clone();
 
-    let _input_task = tokio::spawn(async move {
-        let ac_tx = active_tx;
+    // feedback channel
+    let (active_tx, active_rx) = channel(100);
 
+    let _input_task = tokio::spawn(async move {
+        // move into scope
+        let ac_tx = active_tx;
         let backend = input_backend;
 
         loop {
@@ -50,7 +51,7 @@ pub async fn event_loop(
                         Some(msg) => {
                             match msg.1 {
                                 MidiMessage::NoteOn(_ch, note, _vel) => {
-                                    debug!("{:?}", note);
+                                    trace!("{:?}", note);
                                     let action: Option<rdev::Key> = note.into();
                                     if let Some(action) = action {
 
@@ -63,7 +64,7 @@ pub async fn event_loop(
                                     }
                                 },
                                 MidiMessage::NoteOff(_ch, note) => {
-                                    debug!("{:?}", note);
+                                    trace!("{:?}", note);
                                     let action: Option<rdev::Key> = note.into();
                                     if let Some(action) = action {
 
@@ -75,7 +76,7 @@ pub async fn event_loop(
                                     }
                                 },
                                 MidiMessage::AfterTouch(_ch, note, _vel) => {
-                                    debug!("{:?}", note);
+                                    trace!("{:?}", note);
                                     let action: Option<rdev::Key> = note.into();
 
                                     if let Some(_action) = action {
@@ -105,10 +106,9 @@ pub async fn event_loop(
 
     // displays the overlay and feedback
     let _output_task = tokio::spawn(async move {
-        //let active = active_out.clone();
-        let output = Arc::new(std::sync::Mutex::new(output_port));
-
+        //move into scope
         let mut ac_rx = active_rx;
+        let output = Arc::new(std::sync::Mutex::new(output_port));
 
         draw_mapping(&output).await.unwrap();
 

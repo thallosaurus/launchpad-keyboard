@@ -3,10 +3,11 @@
 #output = "Launchpad Pro MK3 LPProMK3 MIDI"
 
 [mapping]
-KeyW = "A3"
-KeyA = "F3"
-KeyS = "E3"
-KeyD = "F#3"
-KeyE = "C6"
-KeyF = "D6"
-Escape = "E5"
+A3 = "KeyW"
+E3 = "KeyA"
+F3 = "KeyS"
+FS3 = "KeyD"
+C6 = "KeyE"
+D6 = "KeyF"
+E5 = "Escape"
+
