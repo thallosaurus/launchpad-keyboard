@@ -11,7 +11,7 @@ use tokio::sync::{
 use crate::{
     mapping::{Config, MAPPING},
     message::{Message, MidiMessage, Note},
-    virtual_input::{Actions, create_backend},
+    virtual_input::create_backend,
 };
 
 /// The Event Loop that processes and sends events to their destinations

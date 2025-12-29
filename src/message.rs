@@ -1,7 +1,7 @@
 
 use log::{error, trace};
 
-use crate::{mapping::MAPPING, virtual_input::Actions};
+use crate::mapping::MAPPING;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);

@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::{message::Note, virtual_input::Actions};
+use crate::message::Note;
 
 pub static MAPPING: Lazy<Mutex<HashMap<Note, rdev::Key>>> = Lazy::new(|| {
     Mutex::new(HashMap::new())
