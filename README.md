@@ -23,4 +23,5 @@ E5 = "Escape"
 ### TODOs
 - Mapper Tool
 - Real Gamepad Emulation on Linux
-- Extended Mapping Support for more than Keyboards
+- Extended Mapping Support for more than Keyboards (CC, Aftertouch etc)
+- MIDI Channels

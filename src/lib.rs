@@ -10,13 +10,13 @@ use crate::midi::output::start_overlay_task;
 use crate::midi::input::start_input_task;
 
 /// Midi related stuff
-mod midi;
+pub(crate) mod midi;
 
 /// Mapping related stuff
 pub mod mapping;
 
 /// Stuff that emulates the keyboard
-mod virtual_input;
+pub(crate) mod virtual_input;
 
 
 
@@ -37,12 +37,12 @@ pub async fn event_loop(
     output_port: MidiOutputConnection,
 ) -> Result<(), RecvError> {
     // cancellation signal that signals our tasks we are done
-    let (tx, _rx) = broadcast::channel(1);
-    let in_rx = tx.subscribe();
-    let out_rx = tx.subscribe();
+    let (cancellation, _rx) = broadcast::channel(1);
+    let in_rx = cancellation.subscribe();
+    let out_rx = cancellation.subscribe();
 
     ctrlc::set_handler(move || {
-        tx.send(()).expect("could not send ctrlc sig on channel");
+        cancellation.send(()).expect("could not send ctrlc sig on channel");
     })
     .expect("error setting ctrlc handler");
 
