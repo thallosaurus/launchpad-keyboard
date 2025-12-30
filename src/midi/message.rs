@@ -1,5 +1,5 @@
 
-use log::{error, trace};
+use log::error;
 
 use crate::midi::note::MidiNote;
 
@@ -21,6 +21,7 @@ pub enum MidiMessage {
     NoteOn(MidiChannel, MidiNote, MidiVelocity),
     NoteOff(MidiChannel, MidiNote),
     AfterTouch(MidiChannel, MidiNote, MidiVelocity),
+    Clock,
     Unknown,
 }
 
@@ -31,6 +32,7 @@ impl From<MidiMessage> for Vec<u8> {
             MidiMessage::NoteOff(ch, note) => vec![0x80 + ch, note.into(), 0],
             MidiMessage::AfterTouch(ch, note, vel) => vec![0xA0 + ch, note.into(), vel],
             MidiMessage::Unknown => todo!(),
+            MidiMessage::Clock => todo!(),
         }
     }
 }
@@ -59,6 +61,9 @@ impl From<Vec<u8>> for MidiMessage {
                 let ch = data[0] - 0xA0;
                 let n = (*note).into();
                 Self::AfterTouch(ch, n, *vel)
+            },
+            [0xF8] => {
+                Self::Clock
             }
             _ => {
                 error!("{:?}", data);

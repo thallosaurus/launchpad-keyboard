@@ -2,48 +2,57 @@ use std::sync::Arc;
 
 use log::{debug, info, trace};
 use midir::{MidiOutputConnection, SendError};
-use tokio::{
-    sync::broadcast
-};
+use tokio::sync::broadcast;
 
-use crate::{config::Config, midi::{message::MidiMessage, note::MAPPING}};
+use crate::{
+    DeviceNameRetrieve,
+    config::Config,
+    midi::{message::MidiMessage, note::MAPPING},
+};
 
 type OutputTaskReturn = Result<(), SendError>;
 
 const COLOR_PAD_ON: u8 = 120;
 const COLOR_PAD_OFF: u8 = 11;
 
-pub async fn start_overlay_task(
-    config: Config,
+pub trait OutputDeviceNameRetrieve: DeviceNameRetrieve {
+    fn get_light_status(&self) -> bool;
+}
+
+pub async fn start_overlay_task<C>(
+    config: C,
     mut receiver: broadcast::Receiver<MidiMessage>,
     output_port: MidiOutputConnection,
     mut cancellation: broadcast::Receiver<()>,
-) -> OutputTaskReturn {
+) -> OutputTaskReturn
+where
+    C: OutputDeviceNameRetrieve,
+{
     let output_port = Arc::new(std::sync::Mutex::new(output_port));
-        if config.device.lights {
-            draw_mapping(&output_port).await?;
+    if config.get_light_status() {
+        draw_mapping(&output_port).await?;
 
-            let _last_len = 0;
-            loop {
-                tokio::select! {
-                    Ok(msg) = receiver.recv() => {
+        let _last_len = 0;
+        loop {
+            tokio::select! {
+                Ok(msg) = receiver.recv() => {
 
-                        draw_active(msg, &output_port).await?;
-                    }
-                    _c = cancellation.recv() => {
-                        debug!("closing output task");
-                        break;
-                    }
+                    draw_active(msg, &output_port).await?;
+                }
+                _c = cancellation.recv() => {
+                    debug!("closing output task");
+                    break;
                 }
             }
-
-            // send all notes off
-            send_all_off(&output_port).await?;
-            Ok(())
-        } else {
-            info!("Overlay is disabled!");
-            Ok(())
         }
+
+        // send all notes off
+        send_all_off(&output_port).await?;
+        Ok(())
+    } else {
+        info!("Overlay is disabled!");
+        Ok(())
+    }
 }
 
 /// Draws the velocities on the hardware
@@ -78,7 +87,7 @@ async fn draw_mapping(
     let mapping = MAPPING.lock().unwrap();
 
     let mut lock = output.lock().expect("error acquiring output lock");
-    
+
     debug!("Sending Overlay: {:?}", mapping.keys());
     for m in mapping.keys() {
         let msg: Vec<u8> = MidiMessage::NoteOn(0, *m, COLOR_PAD_OFF).into();

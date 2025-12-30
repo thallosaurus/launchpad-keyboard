@@ -1,7 +1,11 @@
 [device]
-#input = "Launchpad Pro MK3 LPProMK3 MIDI"
-#output = "Launchpad Pro MK3 LPProMK3 MIDI"
+input = "Launchpad Pro MK3 LPProMK3 MIDI"
+output = "Launchpad Pro MK3 LPProMK3 MIDI"
 lights = true
+
+[integration]
+input = "Launchpad Pro MK3 LPProMK3 DAW"
+output = "Launchpad Pro MK3 LPProMK3 DAW"
 
 [mapping]
 "A3" = { key = "KeyW" }

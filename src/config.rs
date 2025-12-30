@@ -3,7 +3,7 @@ use std::{collections::HashMap, error::Error};
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::midi::note::{MidiNote, set_mapping};
+use crate::{DeviceNameRetrieve, midi::{note::{MidiNote, set_mapping}, output::OutputDeviceNameRetrieve}};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
@@ -14,8 +14,6 @@ pub enum Action {
         release: Option<String>
     },
 
-    #[cfg(target_os = "linux")]
-    Gamepad {}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -25,9 +23,32 @@ pub struct DeviceConfig {
     pub lights: bool,
 }
 
+impl DeviceNameRetrieve for DeviceConfig {
+    fn get_input_name(&self) -> Option<String> {
+        self.input.clone()
+    }
+
+    fn get_output_name(&self) -> Option<String> {
+        self.output.clone()
+    }
+}
+
+impl OutputDeviceNameRetrieve for DeviceConfig {
+    fn get_light_status(&self) -> bool {
+        self.lights
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Integration {
+    input: String,
+    output: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     mapping: HashMap<MidiNote, Action>,
+    integration: Integration,
     //device: HashMap<String, String>,
     pub device: DeviceConfig,
 }
@@ -45,13 +66,5 @@ impl Config {
         set_mapping(toml.mapping.clone());
 
         Ok(toml)
-    }
-
-    pub fn get_input_name(&self) -> Option<String> {
-        self.device.input.clone()
-    }
-
-    pub fn get_output_name(&self) -> Option<String> {
-        self.device.output.clone()
     }
 }
