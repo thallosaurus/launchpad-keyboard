@@ -4,11 +4,11 @@
 lights = true
 
 [mapping]
-A3 = "KeyW"
-E3 = "KeyA"
-F3 = "KeyS"
-FS3 = "KeyD"
-C6 = "KeyE"
-D6 = "KeyF"
-E5 = "Escape"
+"A3" = "KeyW"
+"E3" = "KeyA"
+"F3" = "KeyS"
+"F#3" = "KeyD"
+"C6" = "KeyE"
+"D6" = "KeyF"
+"E5" = "Escape"
 

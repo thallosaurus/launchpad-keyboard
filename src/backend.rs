@@ -9,10 +9,11 @@ use tokio::sync::{
 };
 
 use crate::{
-    mapping::{Config, MAPPING},
-    message::{Message, MidiMessage},
-    virtual_input::create_backend,
+    mapping::Config, message::{Message, MidiMessage}, note::MAPPING, virtual_input::create_backend
 };
+
+const COLOR_PAD_ON: u8 = 120;
+const COLOR_PAD_OFF: u8 = 11;
 
 /// The Event Loop that processes and sends events to their destinations
 pub async fn event_loop(
@@ -148,14 +149,14 @@ async fn draw_active(
 ) -> Result<(), SendError> {
     match message {
         MidiMessage::NoteOn(ch, note, vel) => {
-            let new_msg: Vec<u8> = MidiMessage::NoteOn(0, note, 120).into();
+            let new_msg: Vec<u8> = MidiMessage::NoteOn(0, note, COLOR_PAD_ON).into();
             let mut lock = output.lock().expect("error acquiring output lock");
             lock.send(&new_msg).unwrap();
             trace!("{:?}", new_msg);
         }
 
         MidiMessage::NoteOff(ch, note) => {
-            let new_msg: Vec<u8> = MidiMessage::NoteOn(0, note, 11).into();
+            let new_msg: Vec<u8> = MidiMessage::NoteOn(0, note, COLOR_PAD_OFF).into();
             let mut lock = output.lock().expect("error acquiring output lock");
             lock.send(&new_msg).unwrap();
             trace!("{:?}", new_msg);
@@ -175,7 +176,7 @@ async fn draw_mapping(
     let mut lock = output.lock().expect("error acquiring output lock");
 
     for m in mapping.keys() {
-        let msg: Vec<u8> = MidiMessage::NoteOn(0, *m, 11).into();
+        let msg: Vec<u8> = MidiMessage::NoteOn(0, *m, COLOR_PAD_OFF).into();
         debug!("{:?}", msg);
         lock.send(&msg)?;
     }

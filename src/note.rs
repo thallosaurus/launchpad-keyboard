@@ -1,7 +1,10 @@
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize, de::{self, Visitor}};
-use std::fmt::{self, Display};
+use std::{collections::HashMap, fmt::{self, Display}, sync::Mutex};
 
-use crate::mapping::MAPPING;
+pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> = Lazy::new(|| {
+    Mutex::new(HashMap::new())
+});
 
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq, Serialize)]
 pub enum MidiNote {
@@ -30,7 +33,7 @@ impl<'de> Deserialize<'de> for MidiNote {
             type Value = MidiNote;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "a MIDI note like C5 or F#3")
+                write!(f, "a MIDI note like C5 or FS3")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -124,7 +127,6 @@ impl From<MidiNote> for u8 {
 
 impl From<MidiNote> for Option<rdev::Key> {
     fn from(value: MidiNote) -> Self {
-        // TODO: Replace with mapping
         let m = MAPPING.lock().unwrap();
 
         m.get(&value.into()).cloned()
@@ -136,8 +138,24 @@ enum MappingError {
     UnknownMidiKey
 }
 
+impl std::error::Error for MappingError {}
+
 impl Display for MappingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_parsing() {
+        assert_eq!(true, false);    // TODO Implement
+    }
+    
+    #[test]
+    fn test_unsupported_notes_fail() {
+        assert_eq!(true, false);    // TODO Implement
     }
 }
