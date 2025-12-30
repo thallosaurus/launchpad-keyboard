@@ -3,6 +3,7 @@ use log::{error, trace};
 
 use crate::midi::note::MidiNote;
 
+//The whole message that was sent from the MIDI Device
 #[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);
 
@@ -36,7 +37,7 @@ impl From<MidiMessage> for Vec<u8> {
 
 impl From<Vec<u8>> for MidiMessage {
     fn from(data: Vec<u8>) -> Self {
-        trace!("{:?}", data);
+        //trace!("{:?}", data);
 
         match data.as_slice() {
             [0x90..=0x9F, note, vel] if *vel > 0 => {

@@ -29,6 +29,7 @@ pub fn connect_input(
             let msg = Vec::from(msg);
             let parsed = Message::parse(ts, msg);
 
+            // send blocking, because we are in a synchronous thread
             if let Err(e) = tx.blocking_send(parsed) {
                 eprintln!("Error receiving midi message: {}", e);
             }

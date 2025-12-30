@@ -1,10 +1,28 @@
+use log::debug;
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize, de::{self, Visitor}};
-use std::{collections::HashMap, fmt::{self, Display}, sync::Mutex};
+use serde::{
+    Deserialize, Serialize,
+    de::{self, Visitor},
+};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+    sync::Mutex,
+};
 
-pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> = Lazy::new(|| {
-    Mutex::new(HashMap::new())
-});
+pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+pub fn set_mapping(m: HashMap<MidiNote, rdev::Key>) {
+    for (_, (m, ac)) in m.iter().enumerate() {
+        debug!("MAPPING: {:?} = {:?}", ac, m);
+
+        {
+            let mut mapping = MAPPING.lock().unwrap();
+            mapping.insert(*m, *ac);
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq, Serialize)]
 pub enum MidiNote {
@@ -48,7 +66,7 @@ impl<'de> Deserialize<'de> for MidiNote {
     }
 }
 
-impl  MidiNote {
+impl MidiNote {
     fn parse(value: &str) -> Result<Self, MappingError> {
         let value = value.trim();
         let (note_str, octave_str) = value
@@ -75,15 +93,14 @@ impl  MidiNote {
             "A" => Ok(MidiNote::A(octave)),
             "A#" | "AS" => Ok(MidiNote::AS(octave)),
             "B" => Ok(MidiNote::B(octave)),
-            _ => Err(MappingError::UnknownMidiKey)
-            //_ => panic!("Unknown note string: {}", value),
+            _ => Err(MappingError::UnknownMidiKey), //_ => panic!("Unknown note string: {}", value),
         }
     }
 }
 
 impl From<u8> for MidiNote {
     fn from(value: u8) -> Self {
-                let octave = value / 12;
+        let octave = value / 12;
         let key = value % 12;
 
         match key {
@@ -133,9 +150,10 @@ impl From<MidiNote> for Option<rdev::Key> {
     }
 }
 
+// MARK: Errors
 #[derive(Debug)]
 enum MappingError {
-    UnknownMidiKey
+    UnknownMidiKey,
 }
 
 impl std::error::Error for MappingError {}
@@ -148,14 +166,13 @@ impl Display for MappingError {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn test_parsing() {
-        assert_eq!(true, false);    // TODO Implement
+        assert_eq!(true, false); // TODO Implement
     }
-    
+
     #[test]
     fn test_unsupported_notes_fail() {
-        assert_eq!(true, false);    // TODO Implement
+        assert_eq!(true, false); // TODO Implement
     }
 }

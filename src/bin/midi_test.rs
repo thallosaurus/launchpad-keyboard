@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use lp_pro_gamecontroller::{mapping::Config, run};
+use lp_pro_gamecontroller::{config::Config, run};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use log::{debug, trace};
 use tokio::{sync::{Mutex, broadcast, mpsc}, task::JoinHandle};
 
-use crate::{mapping::Config, midi::message::{Message, MidiMessage}, virtual_input::InputBackend};
+use crate::{config::Config, midi::message::{Message, MidiMessage}, virtual_input::InputBackend};
 
 pub enum InputTaskError {}
 

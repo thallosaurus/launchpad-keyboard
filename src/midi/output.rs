@@ -6,7 +6,7 @@ use tokio::{
     sync::broadcast
 };
 
-use crate::{mapping::Config, midi::{message::MidiMessage, note::MAPPING}};
+use crate::{config::Config, midi::{message::MidiMessage, note::MAPPING}};
 
 type OutputTaskReturn = Result<(), SendError>;
 
@@ -78,10 +78,10 @@ async fn draw_mapping(
     let mapping = MAPPING.lock().unwrap();
 
     let mut lock = output.lock().expect("error acquiring output lock");
-
+    
+    debug!("Sending Overlay: {:?}", mapping.keys());
     for m in mapping.keys() {
         let msg: Vec<u8> = MidiMessage::NoteOn(0, *m, COLOR_PAD_OFF).into();
-        debug!("{:?}", msg);
         lock.send(&msg)?;
     }
     drop(lock);

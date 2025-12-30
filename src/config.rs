@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::midi::note::{MAPPING, MidiNote};
+use crate::midi::note::{MAPPING, MidiNote, set_mapping};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DeviceConfig {
@@ -29,19 +29,9 @@ impl Config {
             .read_to_string(&mut s)
             .await
             .expect("error reading mapping file");
-
         let toml: Config = toml::from_str(&s).expect("failed parsing the config");
-        //let m = MAPPING.lock().await;
-        let m = toml.mapping.clone();
 
-        for (_, (m, ac)) in m.iter().enumerate() {
-            debug!("MAPPING: {:?} = {:?}", ac, m);
-
-            {
-                let mut mapping = MAPPING.lock().unwrap();
-                mapping.insert(*m, *ac);
-            }
-        }
+        set_mapping(toml.mapping.clone());
 
         Ok(toml)
     }

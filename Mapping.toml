@@ -11,4 +11,4 @@ lights = true
 "C6" = "KeyE"
 "D6" = "KeyF"
 "E5" = "Escape"
-
+#"E6" = { key = "KeyW" }

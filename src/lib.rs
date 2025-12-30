@@ -1,11 +1,11 @@
-//! # Launchpad Pro Userspace Keyboard Driver
-//! 
-//! This library allows you to map MIDI Devices to Keyboard Inputs making them effective computer keyboards.
+#![doc = concat!(
+   include_str!("../README.md")
+)]
 
 use std::{error::Error, sync::{Arc, mpsc::RecvError}};
 use midir::MidiOutputConnection;
 use tokio::sync::{Mutex, broadcast, mpsc};
-use crate::{mapping::Config, midi::{device, message::Message}, virtual_input::create_backend};
+use crate::{config::Config, midi::{device, message::Message}, virtual_input::create_backend};
 use crate::midi::output::start_overlay_task;
 use crate::midi::input::start_input_task;
 
@@ -13,12 +13,10 @@ use crate::midi::input::start_input_task;
 pub(crate) mod midi;
 
 /// Mapping related stuff
-pub mod mapping;
+pub mod config;
 
 /// Stuff that emulates the keyboard
 pub(crate) mod virtual_input;
-
-
 
 /// Run the default event loop using the given config
 pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -53,11 +51,11 @@ pub async fn event_loop(
     // feedback channel
     let (active_tx, active_rx) = broadcast::channel(100);
 
-    let input_task = tokio::spawn(start_input_task(config.clone(), from_raw_device, backend, active_tx, in_rx));
-    let output_task = tokio::spawn(start_overlay_task(config.clone(), active_rx, output_port, out_rx));
+    //let input_task = ;
+    //let output_task = 
     let join = tokio::join!(
-        input_task,
-        output_task
+        tokio::spawn(start_input_task(config.clone(), from_raw_device, backend, active_tx, in_rx)),
+        tokio::spawn(start_overlay_task(config.clone(), active_rx, output_port, out_rx))
     );
 
     Ok(())
