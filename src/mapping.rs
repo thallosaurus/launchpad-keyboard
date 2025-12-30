@@ -5,16 +5,16 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::note::{MAPPING, MidiNote};
+use crate::midi::note::{MAPPING, MidiNote};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DeviceConfig {
     input: Option<String>,
     output: Option<String>,
     pub lights: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     mapping: HashMap<MidiNote, rdev::Key>,
     //device: HashMap<String, String>,

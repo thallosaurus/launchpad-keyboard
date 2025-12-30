@@ -1,4 +1,3 @@
-use crate::message::Message;
 use std::{
     error::Error,
     io::{Write, stdin, stdout},
@@ -6,6 +5,8 @@ use std::{
 
 use midir::{MidiIO, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 use tokio::sync::mpsc::Sender;
+
+use crate::midi::message::Message;
 
 pub fn connect_input(
     name: Option<String>,

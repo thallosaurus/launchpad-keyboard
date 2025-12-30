@@ -1,7 +1,7 @@
 
 use log::{error, trace};
 
-use crate::{note::MidiNote};
+use crate::midi::note::MidiNote;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);
