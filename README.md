@@ -19,3 +19,8 @@ C6 = "KeyE"
 D6 = "KeyF"
 E5 = "Escape"
 ```
+
+### TODOs
+- Mapper Tool
+- Real Gamepad Emulation on Linux
+- Extended Mapping Support for more than Keyboards
