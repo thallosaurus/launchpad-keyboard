@@ -3,10 +3,10 @@ use std::sync::Arc;
 use log::{debug, info, trace};
 use midir::{MidiOutputConnection, SendError};
 use tokio::{
-    sync::{broadcast, mpsc}, task::JoinHandle
+    sync::broadcast
 };
 
-use crate::{mapping::Config, midi::{message::MidiMessage, note::MAPPING, output}};
+use crate::{mapping::Config, midi::{message::MidiMessage, note::MAPPING}};
 
 type OutputTaskReturn = Result<(), SendError>;
 
@@ -21,14 +21,14 @@ pub async fn start_overlay_task(
 ) -> OutputTaskReturn {
     let output_port = Arc::new(std::sync::Mutex::new(output_port));
         if config.device.lights {
-            draw_mapping(&output_port).await.unwrap();
+            draw_mapping(&output_port).await?;
 
             let _last_len = 0;
             loop {
                 tokio::select! {
                     Ok(msg) = receiver.recv() => {
 
-                        draw_active(msg, &output_port).await;
+                        draw_active(msg, &output_port).await?;
                     }
                     _c = cancellation.recv() => {
                         debug!("closing output task");
@@ -38,7 +38,8 @@ pub async fn start_overlay_task(
             }
 
             // send all notes off
-            send_all_off(&output_port).await
+            send_all_off(&output_port).await?;
+            Ok(())
         } else {
             info!("Overlay is disabled!");
             Ok(())

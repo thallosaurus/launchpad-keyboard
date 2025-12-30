@@ -8,6 +8,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::midi::message::Message;
 
+/// Connect to the MIDI Input Device
 pub fn connect_input(
     name: Option<String>,
     tx: Sender<Message>,
@@ -36,6 +37,7 @@ pub fn connect_input(
     )?)
 }
 
+/// Connect to MIDI Output
 pub fn connect_output(name: Option<String>) -> Result<MidiOutputConnection, Box<dyn Error>> {
     let midi_out = MidiOutput::new("midir forwarding output")?;
     let out_port = if let Some(name) = name {
@@ -47,6 +49,7 @@ pub fn connect_output(name: Option<String>) -> Result<MidiOutputConnection, Box<
     Ok(midi_out.connect(&out_port, "lppro-gamecontroller")?)
 }
 
+/// Prompts the user to select the device
 fn select_port<T: MidiIO>(midi_io: &T, descr: &str) -> Result<T::Port, Box<dyn Error>> {
     println!("Available {} ports:", descr);
     let midi_ports = midi_io.ports();
@@ -63,6 +66,7 @@ fn select_port<T: MidiIO>(midi_io: &T, descr: &str) -> Result<T::Port, Box<dyn E
     Ok(port.clone())
 }
 
+/// Select MIDI Device by Name
 fn select_port_by_name<T: MidiIO>(midi_io: &T, search: String) -> Result<T::Port, Box<dyn Error>> {
     let midi_ports = midi_io.ports();
 
