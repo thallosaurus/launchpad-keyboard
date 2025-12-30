@@ -51,8 +51,6 @@ pub async fn event_loop(
     // feedback channel
     let (active_tx, active_rx) = broadcast::channel(100);
 
-    //let input_task = ;
-    //let output_task = 
     let join = tokio::join!(
         tokio::spawn(start_input_task(config.clone(), from_raw_device, backend, active_tx, in_rx)),
         tokio::spawn(start_overlay_task(config.clone(), active_rx, output_port, out_rx))

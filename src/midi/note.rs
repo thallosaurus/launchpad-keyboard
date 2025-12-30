@@ -10,16 +10,18 @@ use std::{
     sync::Mutex,
 };
 
-pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, rdev::Key>>> =
+use crate::config::Action;
+
+pub static MAPPING: Lazy<Mutex<HashMap<MidiNote, Action>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
-pub fn set_mapping(m: HashMap<MidiNote, rdev::Key>) {
+pub fn set_mapping(m: HashMap<MidiNote, Action>) {
     for (_, (m, ac)) in m.iter().enumerate() {
         debug!("MAPPING: {:?} = {:?}", ac, m);
 
         {
             let mut mapping = MAPPING.lock().unwrap();
-            mapping.insert(*m, *ac);
+            mapping.insert(*m, ac.clone());
         }
     }
 }
@@ -142,7 +144,7 @@ impl From<MidiNote> for u8 {
     }
 }
 
-impl From<MidiNote> for Option<rdev::Key> {
+impl From<MidiNote> for Option<Action> {
     fn from(value: MidiNote) -> Self {
         let m = MAPPING.lock().unwrap();
 

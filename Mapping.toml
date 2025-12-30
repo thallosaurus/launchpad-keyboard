@@ -4,11 +4,12 @@
 lights = true
 
 [mapping]
-"A3" = "KeyW"
-"E3" = "KeyA"
-"F3" = "KeyS"
-"F#3" = "KeyD"
-"C6" = "KeyE"
-"D6" = "KeyF"
-"E5" = "Escape"
-#"E6" = { key = "KeyW" }
+"A3" = { key = "KeyW" }
+"E3" = { key = "KeyA" }
+"F3" = { key = "KeyS" }
+"F#3" = { key = "KeyD" }
+"C6" = { key = "KeyE" }
+"D6" = { key = "KeyF" }
+"E5" = { key = "Escape" }
+"F5" = { shell = { press = "ls" } }
+"F#5" = { shell = { release = "ls" } }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use log::{debug, trace};
 use tokio::{sync::{Mutex, broadcast, mpsc}, task::JoinHandle};
 
-use crate::{config::Config, midi::message::{Message, MidiMessage}, virtual_input::InputBackend};
+use crate::{config::{Action, Config}, midi::message::{Message, MidiMessage}, virtual_input::InputBackend};
 
 pub enum InputTaskError {}
 
@@ -18,7 +18,7 @@ pub async fn start_input_task(config: Config, mut from_raw_device: mpsc::Receive
                             match msg.1 {
                                 MidiMessage::NoteOn(_ch, note, _vel) => {
                                     trace!("{:?}", note);
-                                    let action: Option<rdev::Key> = note.into();
+                                    let action: Option<Action> = note.into();
                                     if let Some(action) = action {
 
                                         let mut lock = backend.lock().await;
@@ -31,7 +31,7 @@ pub async fn start_input_task(config: Config, mut from_raw_device: mpsc::Receive
                                 },
                                 MidiMessage::NoteOff(_ch, note) => {
                                     trace!("{:?}", note);
-                                    let action: Option<rdev::Key> = note.into();
+                                    let action: Option<Action> = note.into();
                                     if let Some(action) = action {
 
                                         let mut lock = backend.lock().await;
@@ -43,7 +43,7 @@ pub async fn start_input_task(config: Config, mut from_raw_device: mpsc::Receive
                                 },
                                 MidiMessage::AfterTouch(_ch, note, _vel) => {
                                     trace!("{:?}", note);
-                                    let action: Option<rdev::Key> = note.into();
+                                    let action: Option<Action> = note.into();
 
                                     if let Some(_action) = action {
                                         // todo

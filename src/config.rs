@@ -1,11 +1,22 @@
 use std::{collections::HashMap, error::Error};
 
-use log::debug;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::midi::note::{MAPPING, MidiNote, set_mapping};
+use crate::midi::note::{MidiNote, set_mapping};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Action {
+    Key(rdev::Key),
+    Shell {
+        press: Option<String>,
+        release: Option<String>
+    },
+
+    #[cfg(target_os = "linux")]
+    Gamepad {}
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DeviceConfig {
@@ -16,7 +27,7 @@ pub struct DeviceConfig {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    mapping: HashMap<MidiNote, rdev::Key>,
+    mapping: HashMap<MidiNote, Action>,
     //device: HashMap<String, String>,
     pub device: DeviceConfig,
 }
