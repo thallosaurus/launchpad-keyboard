@@ -45,10 +45,20 @@ pub struct Integration {
     output: String,
 }
 
+impl DeviceNameRetrieve for Integration {
+    fn get_input_name(&self) -> Option<String> {
+        Some(self.input.clone())
+    }
+
+    fn get_output_name(&self) -> Option<String> {
+        Some(self.output.clone())
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     mapping: HashMap<MidiNote, Action>,
-    integration: Integration,
+    pub integration: Integration,
     //device: HashMap<String, String>,
     pub device: DeviceConfig,
 }

@@ -27,8 +27,10 @@ pub fn connect_input(
         &in_port,
         "lppro-gamecontroller",
         move |ts, msg, tx| {
+
+            //parse message
             let msg = Vec::from(msg);
-            let parsed = Message::parse(ts, msg);
+            let parsed: Message = (ts, msg).into();
 
             // send blocking, because we are in a synchronous thread
             if let Err(e) = tx.blocking_send(parsed) {

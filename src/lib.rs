@@ -31,7 +31,7 @@ pub trait DeviceNameRetrieve {
 }
 
 /// Run the specified event loop using the given config
-pub async fn open_device_with_event_loop<F, Fut, C>(
+pub async fn open_device_pair_with_event_loop<F, Fut, C>(
     config: C,
     event_loop: F,
 ) -> Result<(), Box<dyn Error>>
@@ -45,6 +45,17 @@ where
     let out_port = device::connect_output(config.get_output_name())?;
 
     event_loop(config, from_device, out_port).await?;
+    Ok(())
+}
+
+pub async fn integration_event_loop<C>(
+    config: C,
+    from_raw_device: mpsc::Receiver<Message>,
+    output_port: MidiOutputConnection
+) -> Result<(), RecvError>
+where 
+    C: DeviceNameRetrieve + Send + Sync + Clone + 'static,
+{   println!("integration loop running");
     Ok(())
 }
 

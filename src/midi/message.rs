@@ -7,9 +7,9 @@ use crate::midi::note::MidiNote;
 #[derive(Debug, Clone, Copy)]
 pub struct Message(u64, pub MidiMessage);
 
-impl Message {
-    pub fn parse(ts: u64, data: Vec<u8>) -> Self {
-        Message(ts, data.into())
+impl From<(u64, Vec<u8>)> for Message {
+    fn from(value: (u64, Vec<u8>)) -> Self {
+        Message(value.0, value.1.into())
     }
 }
 
